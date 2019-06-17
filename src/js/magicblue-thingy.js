@@ -7,6 +7,7 @@ import Thingy from "./vendor/thingy/index.js";
 
 	let bulb;
 	let bulbObj = {
+		toggle: document.getElementById(`toggle--bulb`),
 		connectBtn: document.getElementById(`btn--connect-bulb`),
 		disconnectBtn: document.getElementById(`btn--disconnect-bulb`),
 		isConnected: false,
@@ -15,11 +16,73 @@ import Thingy from "./vendor/thingy/index.js";
 
 	let thingy;
 	let thingyObj = {
+		toggle: document.getElementById(`toggle--thingy`),
 		connectBtn: document.getElementById(`btn--connect-thingy`),
 		disconnectBtn: document.getElementById(`btn--disconnect-thingy`),
 		isConnected: false
 	};
 	let heading = 0;
+
+	const togglePendingClass = 'cb-toggle--is-pending';
+
+	/**
+	* init bulb connection toggle
+	* @returns {undefined}
+	*/
+	const initBulbToggle = function() {
+		bulbObj.toggle.addEventListener('click', async (e) => {
+			const doConnect = bulbObj.toggle.checked;
+			if (doConnect) {
+				bulbObj.toggle.classList.add(togglePendingClass);
+				try {
+					bulbObj.isConnected = await bulb.connect();
+				} catch(err) {
+					bulbObj.isConnected = false;
+				}
+				setConnectionStatus(bulbObj);
+			}
+		});
+	};
+
+	
+	/**
+	* init bulb connection toggle
+	* @returns {undefined}
+	*/
+	const initThingyToggle = function() {
+		thingyObj.toggle.addEventListener('click', async (e) => {
+			const doConnect = thingyObj.toggle.checked;
+			if (doConnect) {
+				thingyObj.toggle.classList.add(togglePendingClass);
+				try {
+					thingyObj.isConnected = await thingy.connect();
+					console.log(thingyObj.isConnected);
+				} catch(err) {
+					thingyObj.isConnected = false;
+				}
+				if (thingyObj.isConnected) {
+					// connection was made
+					thingy.addEventListener('heading', headingHandler);
+					thingy.heading.start();
+				}
+			} else {
+				// go disconnect
+				thingyObj.toggle.classList.add(togglePendingClass);
+				try {
+					thingyObj.isConnected = await !thingy.disconnect();
+					console.log(thingyObj.isConnected);
+				} catch(err) {
+					thingyObj.isConnected = false;// ??
+				}
+				if (!thingyObj.isConnected) {
+					// properly disconnected
+					thingy.heading.stop();
+					thingy.removeEventListener('heading', headingHandler);
+				}
+			}
+			setConnectionStatus(thingyObj);
+		});
+	};
 
 
 	/**
@@ -152,12 +215,16 @@ import Thingy from "./vendor/thingy/index.js";
 	*/
 	const setConnectionStatus = function(deviceObj) {
 		if (deviceObj.isConnected) {
+			deviceObj.toggle.checked = true;
 			deviceObj.connectBtn.setAttribute('disabled', 'disabled');
 			deviceObj.disconnectBtn.removeAttribute('disabled');
 		} else {
+			deviceObj.toggle.checked = false;
 			deviceObj.connectBtn.removeAttribute('disabled');
 			deviceObj.disconnectBtn.setAttribute('disabled', 'disabled');
 		}
+
+		deviceObj.toggle.classList.remove(togglePendingClass);
 	};
 
 
@@ -186,6 +253,8 @@ import Thingy from "./vendor/thingy/index.js";
 		bulb = new MagicBlue();
 		thingy = new Thingy({logEnabled: true});
 		initButtons();
+		initBulbToggle();
+		initThingyToggle();
 	};
 
 	// kick of the script when all dom content has loaded

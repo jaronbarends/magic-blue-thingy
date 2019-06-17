@@ -1,0 +1,75 @@
+.cb-toggle {
+	position: relative;
+	z-index: 1;
+	opacity: 0.00001;
+	width: 1px;
+	height: 1px;
+}
+
+.cb-toggle + label {
+	--pd: 0.25em;
+	--anim: 100ms ease-in-out;
+	--h: 1.5em;
+	--w: calc(1.8 * var(--h));
+	position: relative;
+	display: inline-block;
+  padding-left: calc(var(--w) + 0.5em);
+  cursor: pointer;
+}
+
+.cb-toggle + label::before {
+  content: '';
+	display: inline-block;
+	position: absolute;
+  top: 50%;
+  left: 0;
+	height: var(--h);
+	width: var(--w);
+	background: #c00;
+	border-radius: calc(0.5 * var(--h));
+	transition: background var(--anim);
+  transform: translateY(-50%);
+}
+
+
+.cb-toggle + label::after {
+	content: '';
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: var(--pd);
+	width: calc(var(--h) - 2 * var(--pd));
+	height: calc(var(--h) - 2 * var(--pd));
+	border-radius: 50%;
+	background: white;
+	transform: translate(0, -50%);
+	transition: transform var(--anim);
+}
+
+.cb-toggle:checked + label::before {
+	background: green;
+}
+
+.cb-toggle:checked + label::after {
+	transform: translate(calc( var(--w) - 2 * var(--pd) - 100%), -50%);
+}
+
+@keyframes pending-animation {
+  0%: {
+    background: white;
+  }
+  50% {
+    background: transparent;
+  }
+}
+
+.cb-toggle--is-pending + label::before,
+.cb-toggle--is-pending:checked + label::before {
+  background: cornflowerblue;
+}
+
+.cb-toggle--is-pending + label::after,
+.cb-toggle--is-pending:checked + label::after {
+  transform: translate(calc(var(--w) / 2 - var(--pd) - 50%), -50%);
+  animation: pending-animation 800ms ease-in-out infinite;
+}
